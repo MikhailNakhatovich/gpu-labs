@@ -20,12 +20,9 @@ double* generateMatrix(size_t size)
     std::mt19937 generator(device());
     std::uniform_real_distribution<double> distribution(MINIMUM_VALUE, MAXIMUM_VALUE);
     
-    double* matrix = new double[size * size];
-    for (size_t i = 0; i < size; ++i)
-    {
-        for (size_t j = 0; j < size; ++j)
-            matrix[i * size + j] = distribution(generator);
-    }
+    size_t n = size * size;
+    double* matrix = new double[n];
+    for (size_t i = 0; i < n; matrix[i] = distribution(generator), ++i);
     return matrix;
 }
 
@@ -104,12 +101,9 @@ float multMatricesOnGPU(double* a, double* b, double* c, size_t size)
 
 double getMaximumDeviation(double* a, double* b, size_t size)
 {
+    size_t n = size * size;
     double deviation = 0.0;
-    for (size_t i = 0; i < size; ++i)
-    {
-        for (size_t j = 0; j < size; ++j)
-            deviation = std::max(deviation, std::abs(a[i * size + j] - b[i *size + j]));
-    }
+    for (size_t i = 0; i < n; deviation = std::max(deviation, std::abs(a[i] - b[i])), ++i);
     return deviation;
 }
 
