@@ -14,16 +14,15 @@
 #define MAXIMUM_VALUE 32
 #define DEFAULT_SIZE 1000
 
-double* generateMatrix(size_t size)
+void fillMatrix(double* matrix, size_t size)
 {
     std::random_device device;
     std::mt19937 generator(device());
     std::uniform_real_distribution<double> distribution(MINIMUM_VALUE, MAXIMUM_VALUE);
     
     size_t n = size * size;
-    double* matrix = new double[n];
-    for (size_t i = 0; i < n; matrix[i] = distribution(generator), ++i);
-    return matrix;
+    for (size_t i = 0; i < n; ++i)
+        matrix[i] = distribution(generator);
 }
 
 float multMatricesOnCPU(double* a, double* b, double* c, size_t size)
@@ -38,7 +37,8 @@ float multMatricesOnCPU(double* a, double* b, double* c, size_t size)
         {
             size_t cellIndex = i * size + j;
             c[cellIndex] = 0;
-            for (size_t k = 0; k < size; c[cellIndex] += a[i * size + k] * b[k * size + j], ++k);
+            for (size_t k = 0; k < size; ++k)
+                c[cellIndex] += a[i * size + k] * b[k * size + j];
         }
     }
     QueryPerformanceCounter(&stopTime);
@@ -57,7 +57,8 @@ __global__ void multMatricesOnGPUKernel(double* a, double* b, double* c, size_t 
 
     size_t cellIndex = i * size + j;
     c[cellIndex] = 0;
-    for (size_t k = 0; k < size; c[cellIndex] += a[i * size + k] * b[k * size + j], ++k);
+    for (size_t k = 0; k < size; ++k)
+        c[cellIndex] += a[i * size + k] * b[k * size + j];
 }
 
 float multMatricesOnGPU(double* a, double* b, double* c, size_t size)
@@ -103,7 +104,8 @@ double getMaximumDeviation(double* a, double* b, size_t size)
 {
     size_t n = size * size;
     double deviation = 0.0;
-    for (size_t i = 0; i < n; deviation = std::max(deviation, std::abs(a[i] - b[i])), ++i);
+    for (size_t i = 0; i < n; ++i)
+        deviation = std::max(deviation, std::abs(a[i] - b[i]));
     return deviation;
 }
 
@@ -114,8 +116,14 @@ int main(int argc, char* argv[])
         size = std::strtoumax(argv[1], nullptr, 10);
     std::cout << "Matrices have size " << size << "x" << size << std::endl;
 
-    double* a = generateMatrix(size), *b = generateMatrix(size);
-    double* cCPU = new double[size * size], *cGPU = new double[size * size];
+    size_t n = size * size;
+    double* a = new double[n];
+    double* b = new double[n];
+    double* cCPU = new double[n];
+    double* cGPU = new double[n];
+    
+    fillMatrix(a, size);
+    fillMatrix(b, size);
 
     float timeCPU = multMatricesOnCPU(a, b, cCPU, size);
     float timeGPU = multMatricesOnGPU(a, b, cGPU, size);
